@@ -19,6 +19,7 @@
 
 # production
 /build
+.vscode/
 
 # misc
 .DS_Store
@@ -39,3 +40,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Proyectos Supabase
+.supabase/
+
+# Data Procesada (Sugerencia)
+# Mantener preguntas_raw.csv, pero ignorar versiones generadas si se vuelven pesadas
+data/*.json
+
+# Gemini CLI
+.gemini/
+
+# Logs del sistema o de scripts
+logs/
+*.log

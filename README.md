@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎓 Sistema de Evaluación y Aprendizaje - Examen 2026 Bolivia
 
-## Getting Started
+Plataforma web integral diseñada para la preparación efectiva de aspirantes al examen de admisión 2026. La aplicación ofrece una experiencia de aprendizaje personalizada, simulacros en tiempo real y seguimiento detallado del progreso.
 
-First, run the development server:
+## 🚀 Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **📚 Modo Estudio:** Navegación por 4 áreas (Matemáticas, Ciencias, Lenguaje, Sociales) y 24 temas específicos con material de lectura y práctica focalizada.
+- **📝 Simulacros de Examen:** Evaluaciones de 100 preguntas balanceadas con temporizador, sistema de pausas y navegación intuitiva.
+- **🏆 Gamificación:** Sistema de logros, rachas diarias de estudio y rankings globales para fomentar la competitividad sana.
+- **📊 Análisis de Progreso:** Estadísticas detalladas por área y tema para identificar fortalezas y debilidades.
+- **💳 Gestión de Suscripciones:** Flujo de pago manual mediante QR con carga de comprobantes y validación administrativa.
+- **🔒 Seguridad Avanzada:** Protección de contenido mediante bloqueo de DevTools y control de sesiones concurrentes.
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend:** [Next.js 15](https://nextjs.org/) (App Router), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/).
+- **UI & Componentes:** [Shadcn/UI](https://ui.shadcn.com/), [Lucide React](https://lucide.dev/), [Framer Motion](https://www.framer.com/motion/).
+- **Estado y Datos:** [Zustand](https://docs.pmnd.rs/zustand/), [TanStack Query v5](https://tanstack.com/query/latest).
+- **Backend & DB:** [Supabase](https://supabase.com/) (Auth, PostgreSQL, Storage, Edge Functions).
+- **Validación:** [Zod](https://zod.dev/) + [React Hook Form](https://react-hook-form.com/).
+
+## 📦 Estructura del Proyecto
+
+```text
+├── src/
+│   ├── app/            # Rutas y páginas (Next.js App Router)
+│   ├── components/     # Componentes de UI y lógica de negocio
+│   ├── hooks/          # Hooks personalizados
+│   ├── lib/            # Configuraciones de clientes (Supabase, utils)
+│   ├── services/       # Capa de servicios para interactuar con la API/DB
+│   ├── stores/         # Gestión de estado global con Zustand
+│   └── types/          # Definiciones de TypeScript y tipos de Base de Datos
+├── docs/               # Documentación arquitectónica y de flujos
+├── data/               # Banco de preguntas y datos maestros
+└── scripts/            # Utilidades de migración y procesamiento de datos
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚙️ Configuración del Entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clonar el repositorio:**
+   ```bash
+   git clone <url-del-repositorio>
+   cd quiz-app
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Instalar dependencias:**
+   ```bash
+   pnpm install
+   ```
 
-## Learn More
+3. **Configurar variables de entorno:**
+   Crea un archivo `.env.local` con las siguientes llaves:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=tu_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Ejecutar en desarrollo:**
+   ```bash
+   pnpm dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📖 Documentación Adicional
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Para más detalles sobre la arquitectura y el diseño, consulta la carpeta `docs/`:
+- [Arquitectura Frontend](./docs/frontend_arch.md)
+- [Esquema de Base de Datos](./docs/supabase_database.sql)
+- [Flujos de Usuario](./docs/ux_flows.md)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Desarrollado para la excelencia académica en el Examen de Admisión 2026.
