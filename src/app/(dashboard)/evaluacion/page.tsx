@@ -141,7 +141,7 @@ export default function EvaluacionPage() {
 											</div>
 											<div>
 												<p className="font-medium text-foreground">
-													{new Date(sim.fecha_inicio).toLocaleDateString()}
+													{sim.fecha_inicio ? new Date(sim.fecha_inicio).toLocaleDateString() : 'Fecha no disponible'}
 												</p>
 												<p className="text-sm text-muted-foreground">
 													{sim.estado === 'completado'

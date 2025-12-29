@@ -49,12 +49,12 @@ export default function InicioPage() {
 
         let nuevaRacha = 1
         if (rachaActual.ultima_actividad === ayerStr) {
-          nuevaRacha = rachaActual.racha_actual + 1
+          nuevaRacha = (rachaActual.racha_actual || 0) + 1
         }
 
         await supabase.from('rachas').update({
           racha_actual: nuevaRacha,
-          racha_maxima: Math.max(nuevaRacha, rachaActual.racha_maxima),
+          racha_maxima: Math.max(nuevaRacha, rachaActual.racha_maxima || 0),
           ultima_actividad: hoy
         }).eq('user_id', user.id)
         

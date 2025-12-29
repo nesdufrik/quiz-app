@@ -35,6 +35,7 @@ export const adminService = {
     // Recuperemos el perfil por separado para evitar bloqueo total
     if (data) {
       const enriched = await Promise.all(data.map(async (s) => {
+        if (!s.user_id) return { ...s, perfil: null }
         const { data: p } = await supabase.from('perfiles').select('nombre_completo, email').eq('id', s.user_id).single()
         return { ...s, perfil: p }
       }))

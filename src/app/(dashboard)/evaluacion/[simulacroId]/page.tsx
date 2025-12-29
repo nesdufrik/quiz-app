@@ -41,7 +41,9 @@ export default function ExamenPage() {
     if (preguntas) {
       const initial: Record<string, string> = {}
       preguntas.forEach(p => {
-        if (p.respuesta_usuario) initial[p.pregunta_id] = p.respuesta_usuario
+        if (p.respuesta_usuario && p.pregunta_id) {
+          initial[p.pregunta_id] = p.respuesta_usuario
+        }
       })
       setRespuestasLocales(initial)
     }
@@ -121,7 +123,8 @@ export default function ExamenPage() {
             </CardHeader>
             <CardContent className="p-8 space-y-4">
               {['A', 'B', 'C', 'D'].map((letra) => {
-                const texto = preguntaActual[`opcion_${letra.toLowerCase()}` as any] as string
+                const key = `opcion_${letra.toLowerCase()}` as 'opcion_a' | 'opcion_b' | 'opcion_c' | 'opcion_d'
+                const texto = preguntaActual[key]
                 const isSelected = respuestasLocales[preguntaActual.id] === letra
 
                 return (
@@ -191,7 +194,7 @@ export default function ExamenPage() {
                 total={preguntas?.length || 0}
                 currentIndex={currentQuestionIndex}
                 respuestas={respuestasLocales}
-                preguntasIds={preguntas?.map(p => p.pregunta_id) || []}
+                preguntasIds={preguntas?.map(p => p.pregunta_id || '') || []}
                 onSelect={(idx) => setQuestionIndex(idx)}
               />
               

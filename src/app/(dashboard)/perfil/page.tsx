@@ -57,7 +57,7 @@ export default function PerfilPage() {
 
   if (!user) return null
 
-  const initials = nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+  const initials = (nombre || '').split(' ').filter(Boolean).map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
 
   // 1. Actualizar Nombre
   const handleUpdateProfile = async () => {

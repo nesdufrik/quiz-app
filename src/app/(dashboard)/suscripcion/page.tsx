@@ -79,7 +79,7 @@ export default function SuscripcionPage() {
 	}
 
 	// Estado: ACTIVA
-	if (estado?.estado === 'activa') {
+	if (estado?.tipo === 'suscripcion' && 'estado' in estado && estado.estado === 'activa') {
 		return (
 			<div className="max-w-2xl mx-auto py-10 animate-in fade-in zoom-in duration-500">
 				<Card className="bg-green-500/10 border-green-500/20">
@@ -92,7 +92,7 @@ export default function SuscripcionPage() {
 						</h2>
 						<p className="text-green-600 dark:text-green-400 mt-2">
 							Tienes acceso total hasta el{' '}
-							{new Date(estado.fecha_fin).toLocaleDateString()}.
+							{'fecha_fin' in estado && estado.fecha_fin ? new Date(estado.fecha_fin).toLocaleDateString() : ''}.
 						</p>
 						<Button
 							variant="outline"
@@ -108,7 +108,7 @@ export default function SuscripcionPage() {
 	}
 
 	// Estado: PENDIENTE
-	if (estado?.estado === 'pendiente') {
+	if (estado?.tipo === 'suscripcion' && 'estado' in estado && estado.estado === 'pendiente') {
 		return (
 			<div className="max-w-2xl mx-auto py-10 animate-in fade-in zoom-in duration-500">
 				<Card className="bg-amber-500/10 border-amber-500/20">

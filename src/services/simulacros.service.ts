@@ -155,7 +155,7 @@ export const simulacrosService = {
     let omitidas = 0
 
     const updates = preguntas.map(p => {
-      const esCorrecta = p.respuesta_usuario === p.pregunta.respuesta_correcta
+      const esCorrecta = p.pregunta ? p.respuesta_usuario === p.pregunta.respuesta_correcta : false
       if (!p.respuesta_usuario) omitidas++
       else if (esCorrecta) correctas++
       else incorrectas++
@@ -195,7 +195,7 @@ export const simulacrosService = {
           if (puntaje === 100) {
             // Necesitamos el userId, podemos obtenerlo del simulacro actual
             const { data: sim } = await supabase.from('simulacros').select('user_id').eq('id', simulacroId).single()
-            if (sim) {
+            if (sim && sim.user_id) {
               await logrosService.otorgarLogro(sim.user_id, 'simulacro_perfecto')
             }
           }
