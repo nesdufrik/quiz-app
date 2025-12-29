@@ -64,48 +64,65 @@ export const estudioService = {
         pregunta_id: preguntaId,
         respuesta_usuario: respuesta,
         es_correcta: esCorrecta,
-        intentos: 1 // Por ahora simple, luego podríamos manejar reintentos
+        intentos: 1
       })
 
     if (respuestaError) throw respuestaError
 
-    // 2. Calcular nuevo progreso del tema
-    // Primero obtenemos el conteo actual
+    // 2. RECALCULAR PROGRESO REAL (Basado en datos únicos)
+    
+    // A. Obtener total de preguntas aprobadas de este tema
     const { count: totalPreguntas } = await supabase
       .from('preguntas')
       .select('*', { count: 'exact', head: true })
       .eq('tema_id', temaId)
       .eq('estado', 'aprobada')
 
-    // Contamos respuestas únicas correctas del usuario para este tema
-    // (Esto es una query un poco compleja, simplificaremos asumiendo incremento local o recalculando)
-    
-    // Enfoque robusto: Obtener registro actual de progreso
-    const { data: progresoActual } = await supabase
-      .from('progreso_temas')
-      .select('*')
-      .eq('user_id', userId)
+    // B. Obtener IDs de todas las preguntas de este tema para filtrar respuestas
+    const { data: preguntasTema } = await supabase
+      .from('preguntas')
+      .select('id')
       .eq('tema_id', temaId)
-      .single()
+    
+    const temaPreguntasIds = preguntasTema?.map(p => p.id) || []
 
-    const nuevosDatos = {
-      user_id: userId,
-      tema_id: temaId,
-      preguntas_respondidas: (progresoActual?.preguntas_respondidas || 0) + 1,
-      preguntas_correctas: (progresoActual?.preguntas_correctas || 0) + (esCorrecta ? 1 : 0),
-      preguntas_incorrectas: (progresoActual?.preguntas_incorrectas || 0) + (esCorrecta ? 0 : 1),
-      ultima_actividad: new Date().toISOString()
-    }
+    // C. Contar cuántas preguntas ÚNICAS de este tema el usuario ha respondido correctamente
+    // Buscamos en respuestas_estudio donde es_correcta = true y la pregunta_id está en este tema
+    const { data: acertadasUnicas } = await supabase
+      .from('respuestas_estudio')
+      .select('pregunta_id')
+      .eq('user_id', userId)
+      .eq('es_correcta', true)
+      .in('pregunta_id', temaPreguntasIds)
 
-    // Calcular porcentaje
-    const porcentaje = totalPreguntas ? Math.round((nuevosDatos.preguntas_correctas / totalPreguntas) * 100) : 0
+    // Usamos Set para garantizar unicidad por ID de pregunta
+    const uniqueIds = new Set(acertadasUnicas?.map(r => r.pregunta_id))
+    const totalCorrectasUnicas = uniqueIds.size
 
-    // 3. Actualizar tabla de progreso
+    // D. Contar cuántas preguntas ÚNICAS de este tema el usuario ha intentado (correctas o incorrectas)
+    const { data: respondidasUnicas } = await supabase
+      .from('respuestas_estudio')
+      .select('pregunta_id')
+      .eq('user_id', userId)
+      .in('pregunta_id', temaPreguntasIds)
+    
+    const uniqueRespondidasIds = new Set(respondidasUnicas?.map(r => r.pregunta_id))
+    const totalRespondidasUnicas = uniqueRespondidasIds.size
+
+    // Calcular porcentajes
+    const porcentaje = totalPreguntas ? Math.round((totalCorrectasUnicas / totalPreguntas) * 100) : 0
+
+    // 3. Actualizar tabla de progreso con los datos recalculados reales
     const { error: progresoError } = await supabase
       .from('progreso_temas')
       .upsert({
-        ...nuevosDatos,
-        porcentaje_completado: porcentaje
+        user_id: userId,
+        tema_id: temaId,
+        preguntas_respondidas: totalRespondidasUnicas,
+        preguntas_correctas: totalCorrectasUnicas,
+        preguntas_incorrectas: totalRespondidasUnicas - totalCorrectasUnicas,
+        porcentaje_completado: Math.min(porcentaje, 100), // Cap al 100% por seguridad
+        ultima_actividad: new Date().toISOString()
       }, { onConflict: 'user_id,tema_id' })
 
     if (progresoError) throw progresoError

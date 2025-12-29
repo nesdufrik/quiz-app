@@ -230,7 +230,7 @@ export default function SuscripcionPage() {
 						<CardHeader>
 							<CardTitle>Enviar Comprobante</CardTitle>
 							<CardDescription>
-								Formatos aceptados: JPG, PNG, PDF
+								Formatos: JPG, PNG. Tamaño máx: 500KB
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -266,9 +266,18 @@ export default function SuscripcionPage() {
 										<Input
 											id="picture"
 											type="file"
-											accept="image/*,application/pdf"
+											accept="image/*"
 											className="hidden"
-											onChange={(e) => setFile(e.target.files?.[0] || null)}
+											onChange={(e) => {
+												const selectedFile = e.target.files?.[0] || null
+												if (selectedFile && selectedFile.size > 500 * 1024) {
+													toast.error('El archivo es demasiado grande. Máximo 500KB.')
+													e.target.value = ''
+													setFile(null)
+													return
+												}
+												setFile(selectedFile)
+											}}
 										/>
 									</label>
 								</div>

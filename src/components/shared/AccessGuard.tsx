@@ -66,7 +66,7 @@ export function AccessGuard({ children }: { children: React.ReactNode }) {
 						cuentas con una suscripción activa.
 					</p>
 					<div className="bg-muted p-4 rounded-lg text-sm text-muted-foreground flex items-start gap-3 text-left">
-						<AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+						<AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
 						<p>
 							Para continuar accediendo a los simulacros y material de estudio,
 							necesitas activar el Plan Premium.
