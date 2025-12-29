@@ -4,7 +4,7 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
@@ -467,6 +467,54 @@ export type Database = {
             foreignKeyName: "rachas_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reportes_soporte: {
+        Row: {
+          created_at: string | null
+          descripcion: string
+          estado: string | null
+          id: string
+          prioridad: string | null
+          tipo: string
+          titulo: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descripcion: string
+          estado?: string | null
+          id?: string
+          prioridad?: string | null
+          tipo: string
+          titulo: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descripcion?: string
+          estado?: string | null
+          id?: string
+          prioridad?: string | null
+          tipo?: string
+          titulo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reportes_soporte_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "estadisticas_usuario"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reportes_soporte_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
