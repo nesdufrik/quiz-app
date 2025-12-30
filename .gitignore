@@ -49,8 +49,13 @@ next-env.d.ts
 data/*.json
 
 # Gemini CLI
-.gemini/
+#.gemini/
 
 # Logs del sistema o de scripts
 logs/
 *.log
+
+# PWA
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
