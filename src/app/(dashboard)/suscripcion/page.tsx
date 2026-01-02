@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import { useAcceso } from '@/hooks/useAcceso'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { suscripcionesService } from '@/services/suscripciones.service'
 import {
@@ -24,12 +25,15 @@ import {
 	Clock,
 	XCircle,
 	Download,
+  Heart,
+  MessageSquarePlus,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 export default function SuscripcionPage() {
 	const { user } = useAuthStore()
+  const { data: acceso } = useAcceso()
 	const [file, setFile] = useState<File | null>(null)
 	const queryClient = useQueryClient()
 
@@ -39,6 +43,60 @@ export default function SuscripcionPage() {
 		queryFn: () => suscripcionesService.getEstadoSuscripcion(user!.id),
 		enabled: !!user,
 	})
+
+  // Vista de Donación (Si el acceso es libre globalmente)
+  if (acceso?.tipo_acceso === 'acceso_libre') {
+    return (
+      <div className="max-w-3xl mx-auto py-10 animate-in fade-in zoom-in duration-500 space-y-8">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center p-3 bg-pink-100 dark:bg-pink-900/30 rounded-full mb-2">
+            <Heart className="w-10 h-10 text-pink-500 animate-pulse" fill="currentColor" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+            Apoya este Proyecto
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Hemos liberado el acceso para todos los estudiantes. Si la plataforma te ayuda en tu preparación, considera hacer una donación voluntaria para mantenerla en línea.
+          </p>
+        </div>
+
+        <Card className="border-2 border-pink-500/20 shadow-xl bg-card overflow-hidden">
+          <div className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 p-6 border-b border-pink-500/10 text-center">
+            <h3 className="text-lg font-semibold text-foreground">Escanea el QR para donar</h3>
+            <p className="text-sm text-muted-foreground">Cualquier monto nos ayuda a seguir creciendo</p>
+          </div>
+          <CardContent className="p-8 flex flex-col items-center gap-6">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border">
+              {/* Usamos qr-pago.png como solicitó el usuario, actuando como QR de donación */}
+              <img 
+                src="/qr-pago.png" 
+                alt="QR Donación" 
+                className="w-64 h-64 object-contain"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+              <a href="/qr-pago.png" download="QR-Donacion-QuizApp.png">
+                <Button variant="outline" className="w-full sm:w-auto gap-2">
+                  <Download className="w-4 h-4" /> Descargar QR
+                </Button>
+              </a>
+              <Button 
+                className="w-full sm:w-auto gap-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
+                onClick={() => window.open('https://wa.me/591XXXXXXXX?text=Hola,%20quiero%20hacer%20una%20donacion', '_blank')}
+              >
+                <MessageSquarePlus className="w-4 h-4" /> Contactar al Creador
+              </Button>
+            </div>
+            
+            <p className="text-xs text-center text-muted-foreground max-w-sm">
+              Tu aporte cubre costos de servidores y desarrollo de nuevas preguntas. ¡Gracias por ser parte de la comunidad!
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
 	// 2. Obtener Plan Activo (Precio)
 	const { data: plan, isLoading: loadingPlan } = useQuery({

@@ -11,6 +11,7 @@ import {
 	Users,
 	HandCoins,
 	MessageSquarePlus,
+	Heart,
 } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
@@ -43,10 +44,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 		if (acceso.tipo_acceso === 'suscripcion') planLabel = 'Premium'
 		else if (acceso.tipo_acceso === 'prueba')
 			planLabel = `Prueba (${acceso.dias_restantes} días)`
+		else if (acceso.tipo_acceso === 'acceso_libre')
+			planLabel = 'Acceso Libre'
 		else planLabel = 'Gratis'
 	}
 
 	const isAdmin = profile?.rol === 'admin'
+	const esAccesoLibre = acceso?.tipo_acceso === 'acceso_libre'
 
 	const data = {
 		user: {
@@ -81,9 +85,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				icon: Trophy,
 			},
 			{
-				title: 'Suscripción',
+				title: esAccesoLibre ? 'Donar' : 'Suscripción',
 				url: '/suscripcion',
-				icon: CreditCard,
+				icon: esAccesoLibre ? Heart : CreditCard,
 			},
 			{
 				title: 'Ranking',

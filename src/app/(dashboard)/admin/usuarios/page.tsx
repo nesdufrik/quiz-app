@@ -23,7 +23,8 @@ import {
   Ban,
   Unlock,
   CreditCard,
-  Loader2
+  Loader2,
+  Mail
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -110,6 +111,18 @@ export default function AdminUsuariosPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-usuarios'] })
     },
     onError: (error: any) => toast.error('Error: ' + error.message)
+  })
+
+  const reenviarEmailMut = useMutation({
+    mutationFn: async (u: any) => {
+      const { sendAccessActivatedEmailAction } = await import('@/actions/email-actions');
+      const result = await sendAccessActivatedEmailAction(u.email, u.nombre_completo || 'Usuario');
+      
+      if (!result.success) throw new Error(result.error || 'Fallo desconocido al enviar');
+      return result;
+    },
+    onSuccess: () => toast.success('Correo enviado correctamente'),
+    onError: (error: any) => toast.error('Error al enviar: ' + error.message)
   })
 
   if (isLoading) return (
@@ -232,6 +245,18 @@ export default function AdminUsuariosPage() {
                           }}>
                             <CreditCard className="w-4 h-4 mr-2" />
                             Asignar Acceso Manual
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem 
+                            onClick={() => reenviarEmailMut.mutate(u)}
+                            disabled={reenviarEmailMut.isPending}
+                          >
+                            {reenviarEmailMut.isPending ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <Mail className="w-4 h-4 mr-2" />
+                            )}
+                            Notificar Acceso por Correo
                           </DropdownMenuItem>
 
                           {suscripcionActiva && (

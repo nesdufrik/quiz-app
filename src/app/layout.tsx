@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
-import { DevToolsGuard } from "@/components/shared/DevToolsGuard";
 import { ServiceWorkerRegister } from "@/components/shared/ServiceWorkerRegister";
 
 const geistSans = Geist({
@@ -49,9 +48,7 @@ export default function RootLayout({
       >
         <Providers>
           <ServiceWorkerRegister />
-          <DevToolsGuard>
-            {children}
-          </DevToolsGuard>
+          {children}
           <Toaster position="top-center" richColors />
         </Providers>
       </body>

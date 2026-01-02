@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { sendAccessActivatedEmailAction } from '@/actions/email-actions'
 
 export const adminService = {
   // Obtener resumen para dashboard
@@ -63,6 +64,32 @@ export const adminService = {
       .eq('id', suscripcionId)
 
     if (error) throw error
+
+    // Notificar por correo
+    try {
+      const { data: suscripcion } = await supabase
+        .from('suscripciones')
+        .select('user_id')
+        .eq('id', suscripcionId)
+        .single()
+
+      if (suscripcion?.user_id) {
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('email, nombre_completo')
+          .eq('id', suscripcion.user_id)
+          .single()
+
+        if (perfil?.email) {
+          await sendAccessActivatedEmailAction(
+            perfil.email, 
+            perfil.nombre_completo || 'Usuario'
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error al enviar correo tras aprobación:', err)
+    }
   },
 
   // Rechazar suscripción
@@ -76,6 +103,30 @@ export const adminService = {
         verificado_at: new Date().toISOString()
       })
       .eq('id', suscripcionId)
+
+    if (error) throw error
+  },
+
+  // --- CONFIGURACIÓN GLOBAL ---
+
+  // Obtener estado del sistema de suscripciones
+  async getSistemaSuscripcionesEstado() {
+    const { data, error } = await supabase
+      .from('configuracion')
+      .select('valor')
+      .eq('clave', 'sistema_suscripciones_activo')
+      .single()
+
+    if (error) return true // Por defecto activo si no se encuentra
+    return data.valor === 'true'
+  },
+
+  // Alternar estado del sistema de suscripciones
+  async toggleSistemaSuscripciones(activo: boolean) {
+    const { error } = await supabase
+      .from('configuracion')
+      .update({ valor: activo ? 'true' : 'false' })
+      .eq('clave', 'sistema_suscripciones_activo')
 
     if (error) throw error
   },
@@ -151,6 +202,25 @@ export const adminService = {
       })
 
     if (error) throw error
+
+    // Intentar enviar notificación por correo
+    try {
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('email, nombre_completo')
+        .eq('id', userId)
+        .single()
+
+      if (perfil?.email) {
+        await sendAccessActivatedEmailAction(
+          perfil.email, 
+          perfil.nombre_completo || 'Usuario'
+        )
+      }
+    } catch (err) {
+      console.error('Error al enviar correo tras suscripción manual:', err)
+      // No lanzamos error para que la suscripción se considere exitosa aunque falle el correo
+    }
   },
 
   // Cancelar suscripciones activas

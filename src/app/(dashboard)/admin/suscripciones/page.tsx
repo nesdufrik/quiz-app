@@ -21,7 +21,9 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Eye, Check, X, Loader2 } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Eye, Check, X, Loader2, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function AdminSuscripcionesPage() {
@@ -33,6 +35,24 @@ export default function AdminSuscripcionesPage() {
     queryKey: ['admin-suscripciones'],
     queryFn: adminService.getSuscripcionesPendientes
   })
+
+  const { data: sistemaActivo, isLoading: isLoadingConfig } = useQuery({
+    queryKey: ['admin-config-suscripciones'],
+    queryFn: adminService.getSistemaSuscripcionesEstado
+  })
+
+  const toggleSistemaMut = useMutation({
+    mutationFn: (activo: boolean) => adminService.toggleSistemaSuscripciones(activo),
+    onSuccess: (_, activo) => {
+      toast.success(activo ? 'Sistema de suscripciones activado' : 'Acceso libre activado globalmente')
+      queryClient.setQueryData(['admin-config-suscripciones'], activo)
+      queryClient.invalidateQueries({ queryKey: ['admin-config-suscripciones'] })
+    },
+    onError: (error: any) => toast.error('Error: ' + error.message)
+  })
+
+  // Estado optimista: Si se está cambiando, mostrar el nuevo valor, si no, el del servidor
+  const isSwitchChecked = toggleSistemaMut.isPending ? toggleSistemaMut.variables : sistemaActivo
 
   const aprobarMut = useMutation({
     mutationFn: (id: string) => adminService.aprobarSuscripcion(id, user!.id),
@@ -57,8 +77,56 @@ export default function AdminSuscripcionesPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground">Solicitudes Pendientes</h1>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className={isSwitchChecked ? "border-primary/20" : "border-amber-500/50 bg-amber-500/5"}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Estado del Sistema</CardTitle>
+              {isLoadingConfig ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Switch 
+                  checked={!!isSwitchChecked} 
+                  onCheckedChange={(checked) => toggleSistemaMut.mutate(checked)}
+                  disabled={toggleSistemaMut.isPending}
+                />
+              )}
+            </div>
+            <CardDescription>
+              Controla si el acceso requiere una suscripción activa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isSwitchChecked ? (
+              <div className="flex items-center gap-2 text-sm text-primary font-medium">
+                <ShieldCheck className="w-4 h-4" />
+                Suscripciones Requeridas (Producción)
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-medium">
+                <AlertTriangle className="w-4 h-4" />
+                Acceso Libre Activado (Todos los usuarios pueden entrar)
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Resumen de Solicitudes</CardTitle>
+            <CardDescription>
+              Estado actual de las verificaciones de pago.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center gap-4">
+            <div className="text-3xl font-bold">{suscripciones?.length || 0}</div>
+            <div className="text-sm text-muted-foreground">Solicitudes esperando revisión</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between items-center pt-4">
+        <h2 className="text-2xl font-bold text-foreground">Solicitudes Pendientes</h2>
         <Badge variant="outline" className="text-base px-4 py-1">
           {suscripciones?.length || 0} pendientes
         </Badge>
