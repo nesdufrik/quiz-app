@@ -5,14 +5,17 @@ import { useEffect } from 'react'
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('SW registered with scope:', registration.scope)
-        })
-        .catch((error) => {
-          console.error('SW registration failed:', error)
-        })
+      // OBTENER Y ELIMINAR TODOS LOS SERVICE WORKERS ACTIVOS
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          console.warn('🗑️ Eliminando Service Worker Zombie:', registration.scope)
+          registration.unregister()
+        }
+        if (registrations.length > 0) {
+          console.log('✅ Service Workers eliminados. Recargando página para limpiar caché...')
+          window.location.reload() // Forzar recarga para limpiar el control del SW
+        }
+      })
     }
   }, [])
 

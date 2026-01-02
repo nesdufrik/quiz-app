@@ -38,20 +38,39 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // 1. Verificar sesión inicial
     const initializeAuth = async () => {
       setLoading(true)
-      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔐 Iniciando verificación de sesión...')
       
-      if (session) {
-        setUser(session.user)
-        // Buscar perfil en la BD
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle()
-        
-        setProfile(perfil)
+      try {
+        // Promesa con timeout de 5 segundos para no bloquear la UI eternamente
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout verificando sesión')), 5000)
+        )
+
+        const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any
+
+        if (data?.session) {
+          console.log('✅ Sesión recuperada:', data.session.user.email)
+          setUser(data.session.user)
+          // Buscar perfil en la BD
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .maybeSingle()
+          
+          if (perfil) setProfile(perfil)
+        } else {
+          console.log('Bn No hay sesión activa inicial.')
+        }
+      } catch (error) {
+        console.error('⚠️ Error o Timeout inicializando auth:', error)
+        // En caso de error crítico, asumimos logout para no bloquear
+        setUser(null)
+      } finally {
+        console.log('🔓 Fin de carga inicial.')
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     initializeAuth()
@@ -89,6 +108,47 @@ export function Providers({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe()
     }
   }, [setUser, setProfile, setLoading])
+
+  // 3. Monitor de Foco y Visibilidad (Fix para "Cargando infinito" tras inactividad)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('🔄 Recuperando foco: Verificando sesión y refrescando datos...')
+        
+        try {
+          // Promise race: Supabase vs Timeout de 3s
+          const sessionPromise = supabase.auth.getSession()
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Auth recovery timeout')), 3000)
+          )
+
+          const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any
+          
+          if (!data?.session) {
+            console.warn('⚠️ Sesión inválida o expirada al volver.')
+            // Dejar que el usuario siga, eventualmente fallará una query y lo sacará
+          } else {
+            console.log('✅ Sesión válida. Sincronizando usuario...')
+            setUser(data.session.user)
+            await queryClient.invalidateQueries()
+          }
+        } catch (error) {
+          console.error('🔥 Error crítico recuperando sesión (Timeout). Recargando página para sanear estado...')
+          // Si Supabase no responde en 3s, el estado interno está corrupto.
+          // La única forma segura de revivir la app es recargar.
+          window.location.reload()
+        }
+      }
+    }
+
+    window.addEventListener('focus', handleVisibilityChange)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleVisibilityChange)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [setUser])
 
   return (
     <QueryClientProvider client={queryClient}>
