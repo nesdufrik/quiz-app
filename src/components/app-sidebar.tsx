@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import {
-	BookOpen,
+	LibraryBig,
 	GraduationCap,
 	LayoutDashboard,
 	CreditCard,
@@ -12,6 +12,7 @@ import {
 	HandCoins,
 	MessageSquarePlus,
 	Heart,
+	BookOpenCheck,
 } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
@@ -44,8 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 		if (acceso.tipo_acceso === 'suscripcion') planLabel = 'Premium'
 		else if (acceso.tipo_acceso === 'prueba')
 			planLabel = `Prueba (${acceso.dias_restantes} días)`
-		else if (acceso.tipo_acceso === 'acceso_libre')
-			planLabel = 'Acceso Libre'
+		else if (acceso.tipo_acceso === 'acceso_libre') planLabel = 'Acceso Libre'
 		else planLabel = 'Gratis'
 	}
 
@@ -77,22 +77,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			{
 				title: 'Modo Estudio',
 				url: '/estudio',
-				icon: BookOpen,
+				icon: LibraryBig,
 			},
 			{
 				title: 'Evaluación',
 				url: '/evaluacion',
+				icon: BookOpenCheck,
+			},
+			{
+				title: 'Ranking',
+				url: '/ranking',
 				icon: Trophy,
 			},
 			{
 				title: esAccesoLibre ? 'Donar' : 'Suscripción',
 				url: '/suscripcion',
 				icon: esAccesoLibre ? Heart : CreditCard,
-			},
-			{
-				title: 'Ranking',
-				url: '/ranking',
-				icon: Trophy,
 			},
 		],
 	}
@@ -149,7 +149,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			<SidebarFooter>
 				<div className="px-2 py-2">
 					<ReporteDialog>
-						<SidebarMenuButton tooltip="Soporte / Sugerencias" className="text-muted-foreground hover:text-foreground">
+						<SidebarMenuButton
+							tooltip="Soporte / Sugerencias"
+							className="text-muted-foreground hover:text-foreground"
+						>
 							<MessageSquarePlus className="h-4 w-4" />
 							<span>Soporte / Sugerencias</span>
 						</SidebarMenuButton>

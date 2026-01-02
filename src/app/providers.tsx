@@ -1,22 +1,38 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { ThemeProvider } from 'next-themes'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const { setUser, setProfile, setLoading, signOut } = useAuthStore()
+  const router = useRouter()
+
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
         retry: 1,
+        refetchOnWindowFocus: true, // Importante para refrescar al volver
       },
     },
+    // Captura global de errores
+    queryCache: new QueryCache({
+      onError: (error: any) => {
+        // Si detectamos error de autenticación (401 o 403)
+        if (error?.status === 401 || error?.status === 403 || error?.code === 'PGRST301') {
+          console.warn('Sesión expirada o inválida. Cerrando sesión...')
+          signOut()
+          router.push('/login')
+          toast.error('Tu sesión ha expirado. Por favor ingresa nuevamente.')
+        }
+      },
+    }),
   }))
-
-  const { setUser, setProfile, setLoading } = useAuthStore()
 
   useEffect(() => {
     // 1. Verificar sesión inicial
@@ -42,17 +58,29 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     // 2. Escuchar cambios (Login, Logout, OAuth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`Auth Event: ${event}`)
+      
+      if (event === 'SIGNED_OUT') {
+        signOut()
+        setLoading(false)
+        router.refresh() // Limpiar caché de servidor de Next.js
+        return
+      }
+
       if (session) {
         setUser(session.user)
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle()
-        setProfile(perfil)
+        // Solo recargar perfil si no lo tenemos o si es un login nuevo
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle()
+          setProfile(perfil)
+        }
       } else {
-        setUser(null)
-        setProfile(null)
+        // Caso de borde: No hay sesión pero el evento no fue SIGNED_OUT
+        signOut()
       }
       setLoading(false)
     })
